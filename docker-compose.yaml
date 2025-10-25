@@ -1,0 +1,86 @@
+services:
+  # 1. Our Main API Service (Node.js)
+  backend:
+    build: ./backend
+    container_name: ayush_bridge_backend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./backend:/usr/src/app
+      - /usr/src/app/node_modules
+    environment:
+      - NODE_ENV=development
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=ayush
+      - DB_PASSWORD=ayushpassword
+      - DB_NAME=ayushdb
+      - JWT_SECRET=a-string-secret-at-least-256-bits-long
+    depends_on:
+      hapi-fhir:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+      icd11-service:
+        condition: service_started
+      # --- [NEW] ---
+      # Make sure the backend doesn't start until the AI service is ready
+      ai-service:
+        condition: service_started 
+
+  # 2. HAPI FHIR Server (Mock Hospital Server)
+  hapi-fhir:
+    image: hapiproject/hapi:latest
+    container_name: hapi_fhir_server
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+        - JAVA_OPTS=-Djava.awt.headless=true -Xmx2g
+  
+  # 3. WHO ICD-11 API Service
+  icd11-service:
+    image: whoicd/icd-api:2.5.0
+    container_name: icd11_service
+    restart: always
+    ports:
+      - "8000:80" 
+    environment:
+      - fhirSupport=true
+      - acceptLicense=true
+      - saveAnalytics=false
+
+  # 4. PostgreSQL Database (For our backend)
+  postgres:
+    image: postgres:13
+    container_name: postgres_db
+    restart: always
+    environment:
+      POSTGRES_USER: ayush
+      POSTGRES_PASSWORD: ayushpassword
+      POSTGRES_DB: ayushdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ayush"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 5. --- [NEW] --- The AI Semantic Search Service (Python)
+  ai-service:
+    build:
+      context: ./astra_ai  # Assumes a Dockerfile is in ./astra_ai
+    container_name: ayush_ai_service
+    restart: always
+    ports:
+      - "5000:5000"
+    volumes:
+      # This persists the AI's "brain" (vector index)
+      - ./ai-service/vector-store:/app/vector-store
+
+# Define a volume for the database to persist data
+volumes:
+  postgres-data:
