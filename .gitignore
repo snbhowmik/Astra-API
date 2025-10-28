@@ -1,0 +1,63 @@
+# Node.js (backend) specific
+backend/node_modules/
+backend/*.log
+backend/npm-debug.log*
+backend/yarn-debug.log*
+backend/yarn-error.log*
+backend/.env
+backend/dist/
+backend/build/
+
+# Python (ai-service) specific
+ai-service/__pycache__/
+ai-service/*.py[cod]
+ai-service/$PYTHON.cachedir/
+ai-service/.env
+ai-service/*.log
+# Python virtual environment folders
+ai-service/.venv/
+ai-service/venv/
+ai-service/env/
+ai-service/.env/
+ai-service/ENV/
+ai-service/env.bak/
+ai-service/venv.bak/
+
+# AI Service Vector Store (IMPORTANT!)
+ai-service/vector-store/
+
+# General IDE/OS files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.tmp
+
+# macOS specific
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows specific
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Build and distribution artifacts (general)
+dist/
+build/
+*.egg-info/
+*.egg
+
+# Logs (general)
+logs/
+*.log
+
+# Environment variables file (general)
+.env
+.env.*
+!.env.example
+
+# Docker ignore file itself (usually not needed in gitignore but sometimes added)
+#.dockerignore
